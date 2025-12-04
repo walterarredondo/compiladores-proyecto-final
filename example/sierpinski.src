@@ -1,0 +1,166 @@
+// Programa: Triángulo de Sierpinski (Fractal de Pascal)
+// Opción B del proyecto FIS-25
+// Calcula el Triángulo de Pascal y dibuja píxeles donde los coeficientes son impares
+
+// Variables globales
+int n;           // Nivel actual del triángulo
+int maxN;        // Nivel máximo
+int running;     // Control del bucle principal
+
+// Función para calcular el coeficiente binomial C(n, k)
+// Usa la fórmula iterativa para evitar desbordamiento
+func binomial(int n, int k) -> int {
+    if (k > n) {
+        return 0;
+    }
+    if (k == 0) {
+        return 1;
+    }
+    if (k > n - k) {
+        k = n - k;
+    }
+    
+    int result;
+    result = 1;
+    int i;
+    
+    for (i = 0; i < k; i = i + 1) {
+        result = result * (n - i);
+        result = result / (i + 1);
+    }
+    
+    return result;
+}
+
+// Función para verificar si un número es impar
+func isOdd(int num) -> bool {
+    int remainder;
+    remainder = num % 2;
+    if (remainder == 1) {
+        return true;
+    }
+    return false;
+}
+
+// Función para dibujar el triángulo de Sierpinski
+func drawSierpinski(int levels) -> int {
+    int row;
+    int col;
+    int coef;
+    int x;
+    int y;
+    int color;
+    
+    // Limpiar pantalla (dibujar negro en toda la matriz 64x64)
+    for (y = 0; y < 64; y = y + 1) {
+        for (x = 0; x < 64; x = x + 1) {
+            pixel(x, y, 0);
+        }
+    }
+    
+    // Dibujar el triángulo de Sierpinski
+    for (row = 0; row < levels; row = row + 1) {
+        for (col = 0; col <= row; col = col + 1) {
+            coef = binomial(row, col);
+            
+            if (isOdd(coef)) {
+                // Calcular posición en pantalla (centrado)
+                x = 32 + col - row / 2;
+                y = row;
+                
+                // Verificar límites de pantalla
+                if (x >= 0) {
+                    if (x < 64) {
+                        if (y >= 0) {
+                            if (y < 64) {
+                                // Color: blanco (1) para píxeles del fractal
+                                color = 1;
+                                pixel(x, y, color);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    return 0;
+}
+
+// Función para manejar la entrada del teclado
+func handleInput() -> int {
+    int keyUp;
+    int keyDown;
+    int keyEsc;
+    int changed;
+    changed = 0;
+    
+    // Leer estado de las teclas
+    // Flecha Arriba (ID 0) / W (ID 4)
+    key(0, keyUp);
+    // Flecha Abajo (ID 1) / S (ID 5)
+    key(1, keyDown);
+    // Tecla ESPACIO / ACCIÓN - código 8 (FIS-25)
+    key(8, keyEsc);
+    
+    // Si se presiona W, aumentar nivel
+    if (keyUp == 1) {
+        if (n < maxN) {
+            n = n + 1;
+            print(n);
+            changed = 1;
+        }
+    }
+    
+    // Si se presiona S, disminuir nivel
+    if (keyDown == 1) {
+        if (n > 1) {
+            n = n - 1;
+            print(n);
+            changed = 1;
+        }
+    }
+    
+    // Si se presiona ESC, salir
+    if (keyEsc == 1) {
+        running = 0;
+    }
+    
+    return changed;
+}
+
+// Función principal
+func main() -> int {
+    // Inicialización
+    n = 16;          // Nivel inicial
+    maxN = 64;       // Nivel máximo (altura de pantalla)
+    running = 1;     // Continuar ejecutando
+    
+    print("Triángulo de Sierpinski");
+    print("UP/W: Aumentar nivel");
+    print("DOWN/S: Disminuir nivel");
+    print("SPACE: Salir");
+    print("Nivel inicial:");
+    print(n);
+    
+    // Dibujar fractal inicial
+    drawSierpinski(n);
+    
+    // Bucle principal
+    while (running == 1) {
+        // Procesar entrada del usuario
+        int needsRedraw;
+        needsRedraw = handleInput();
+        
+        // Redibujar solo si cambia el nivel
+        if (needsRedraw == 1) {
+            drawSierpinski(n);
+        }
+        
+        // Pequeña pausa para evitar sobrecarga
+        // (En FIS-25 real, esto podría ser un WAIT o DELAY)
+    }
+    
+    print("Programa terminado");
+    return 0;
+}
